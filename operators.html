@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Java Increment Operators</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The application is designed as a single-page educational tool with a top navigation bar for quick access to different sections. The core of the app is an interactive "Playground" where users can input values and run simulations of pre/post-increment operators, seeing a step-by-step visualization of the logic. This active learning approach is more engaging than a passive video. It's supplemented by a static "Side-by-Side Comparison" for quick reference, a "Pitfall Explorer" to deconstruct a complex case, and a final "Key Takeaways" section. This structure guides the user from basic understanding, through experimentation, to handling complex scenarios, creating a comprehensive learning path. -->
+    <!-- Visualization & Content Choices: 
+        - Intro (Inform): Standard HTML header to set the context.
+        - Playground (Inform, Compare, Relate): An interactive component built with HTML/JS. Users select an operator, input a value, and click 'Run'. JS simulates the Java execution order, updating text and styles to visually explain each step. This replaces the script's static code blocks with a dynamic, hands-on experience.
+        - Comparison (Compare): A two-column Tailwind grid showing static code blocks (`<pre>`) and explanations side-by-side. This directly translates the script's comparison section for easy review.
+        - Pitfall Explorer (Inform, Organize): A dedicated interactive component using HTML/JS for the `++val * 2 + val++` example. A "Next Step" button reveals each part of the evaluation, clarifying the order of operations. This makes a complex topic digestible.
+        - Summary (Inform): Styled cards using HTML/Tailwind to present the final rules, mirroring the script's recap.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+            color: #292524; /* stone-800 */
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .nav-button {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .nav-button:hover, .nav-button.active {
+            color: #4f46e5; /* indigo-600 */
+            border-color: #4f46e5; /* indigo-600 */
+        }
+        .interactive-container, .content-section {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .step-inactive {
+            opacity: 0.5;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .step-active {
+            opacity: 1;
+            transform: scale(1.02);
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white sticky top-0 z-50 shadow-md">
+        <nav class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="text-2xl font-bold text-gray-800">
+                    Java Increment Operators
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a onclick="scrollToSection('playground')" class="nav-button border-b-2 border-transparent pb-1">Playground</a>
+                    <a onclick="scrollToSection('comparison')" class="nav-button border-b-2 border-transparent pb-1">Comparison</a>
+                    <a onclick="scrollToSection('pitfall')" class="nav-button border-b-2 border-transparent pb-1">Pitfall</a>
+                    <a onclick="scrollToSection('summary')" class="nav-button border-b-2 border-transparent pb-1">Summary</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8 space-y-12">
+        <section id="intro" class="text-center">
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">Explore Java's Increment Operators Interactively</h1>
+            <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
+                Move beyond static examples. This tool translates the logic of pre-increment (`++var`) and post-increment (`var++`) into a hands-on experience. Experiment with the code, see the step-by-step execution, and master this fundamental concept.
+            </p>
+        </section>
+
+        <section id="playground" class="content-section p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">The Playground</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-md text-gray-600">This is the main interactive area. Choose an operator, set an initial value for your variable, and run the simulation. The application will walk you through the exact order of operations, showing you how the values change at each step, just as Java would execute it.</p>
+            </div>
+            
+            <div class="interactive-container max-w-4xl mx-auto p-6 border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Controls -->
+                    <div class="space-y-4">
+                        <div>
+                            <label for="operatorType" class="block text-sm font-medium text-gray-700">1. Select Operator Type</label>
+                            <select id="operatorType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                <option value="pre">Pre-increment (++a)</option>
+                                <option value="post">Post-increment (a++)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="initialValue" class="block text-sm font-medium text-gray-700">2. Set Initial Value for `a`</label>
+                            <input type="number" id="initialValue" value="5" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <button id="runSimulation" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Run Simulation
+                        </button>
+                    </div>
+
+                    <!-- Visualization -->
+                    <div class="bg-gray-800 text-white p-4 rounded-md font-mono text-sm min-h-[160px]">
+                        <p id="line1" class="whitespace-pre"></p>
+                        <p id="line2" class="whitespace-pre"></p>
+                        <hr class="my-2 border-gray-600">
+                        <p id="outputA" class="whitespace-pre"></p>
+                        <p id="outputB" class="whitespace-pre"></p>
+                    </div>
+                </div>
+
+                <!-- Step-by-step Explanation -->
+                <div id="explanation" class="mt-6 space-y-3">
+                    <!-- Explanation steps will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison" class="content-section p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Side-by-Side Comparison</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-md text-gray-600">Sometimes the clearest way to understand is a direct comparison. This section lays out the code and results for both pre-increment and post-increment, using the classic example from the script to highlight their fundamental difference in execution order.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-xl font-bold mb-2">Pre-increment (`++a`)</h3>
+                    <p class="text-gray-600 mb-4">Rule: **Increment, then use.** The variable is incremented first, and its new value is used in the expression.</p>
+                    <pre class="bg-gray-800 text-white p-4 rounded-md font-mono text-sm"><code>int a = 5;
+int b = ++a;
+
+// Result:
+// a is 6
+// b is 6</code></pre>
+                </div>
+                <div class="bg-white p-6 rounded-lg border">
+                    <h3 class="text-xl font-bold mb-2">Post-increment (`a++`)</h3>
+                    <p class="text-gray-600 mb-4">Rule: **Use, then increment.** The variable's original value is used in the expression, and only then is the variable incremented.</p>
+                    <pre class="bg-gray-800 text-white p-4 rounded-md font-mono text-sm"><code>int a = 5;
+int b = a++;
+
+// Result:
+// a is 6
+// b is 5</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="pitfall" class="content-section p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Common Pitfall Explorer</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-md text-gray-600">Mixing increment operators in a single expression can be confusing. This interactive tool breaks down a complex example step-by-step. Click through the evaluation to see how Java arrives at the final, and sometimes surprising, result.</p>
+            </div>
+             <div class="interactive-container max-w-3xl mx-auto p-6 border border-gray-200">
+                <div class="font-mono bg-gray-800 text-white p-4 rounded-md mb-4">
+                    <p>int val = 10;</p>
+                    <p>int result = ++val * 2 + val++;</p>
+                </div>
+                <div id="pitfall-steps" class="space-y-4">
+                    <!-- Pitfall steps injected here -->
+                </div>
+                <div class="mt-6 flex justify-center">
+                    <button id="runPitfall" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700">
+                        Start Exploration
+                    </button>
+                    <button id="nextPitfallStep" class="hidden bg-green-600 text-white font-bold py-2 px-4 rounded-md hover:bg-green-700">
+                        Next Step
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="summary" class="content-section p-6 md:p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Key Takeaways</h2>
+                <p class="mt-2 max-w-2xl mx-auto text-md text-gray-600">This is the core knowledge distilled into its simplest form. If you remember nothing else, these two rules are the key to mastering Java's increment operators.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-indigo-50 p-6 rounded-lg text-center border border-indigo-200">
+                    <h3 class="text-2xl font-bold text-indigo-800">`++variable`</h3>
+                    <p class="mt-2 text-lg text-indigo-700">Increment Then Use</p>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg text-center border border-green-200">
+                    <h3 class="text-2xl font-bold text-green-800">`variable++`</h3>
+                    <p class="mt-2 text-lg text-green-700">Use Then Increment</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const operatorType = document.getElementById('operatorType');
+            const initialValue = document.getElementById('initialValue');
+            const runSimulationBtn = document.getElementById('runSimulation');
+            
+            const line1 = document.getElementById('line1');
+            const line2 = document.getElementById('line2');
+            const outputA = document.getElementById('outputA');
+            const outputB = document.getElementById('outputB');
+            const explanationContainer = document.getElementById('explanation');
+
+            function displayCode() {
+                const val = initialValue.value || 0;
+                line1.textContent = `int a = ${val};`;
+                if (operatorType.value === 'pre') {
+                    line2.textContent = `int b = ++a;`;
+                } else {
+                    line2.textContent = `int b = a++;`;
+                }
+                outputA.textContent = '';
+                outputB.textContent = '';
+                explanationContainer.innerHTML = '<p class="text-gray-500">Click "Run Simulation" to see the step-by-step execution.</p>';
+            }
+
+            function createStepElement(number, text, isCode = false) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'p-4 border rounded-lg step-inactive';
+                const content = isCode ? `<code class="font-mono">${text}</code>` : text;
+                wrapper.innerHTML = `<span class="font-bold text-indigo-600">Step ${number}:</span> ${content}`;
+                return wrapper;
+            }
+
+            function runSimulation() {
+                explanationContainer.innerHTML = '';
+                let a = parseInt(initialValue.value, 10);
+                let b;
+
+                const originalA = a;
+
+                if (operatorType.value === 'pre') {
+                    const step1 = createStepElement(1, "The expression is `int b = ++a;`");
+                    const step2 = createStepElement(2, "Java evaluates `++a` first. The value of `a` is incremented from " + a + " to " + (a + 1) + ".");
+                    const step3 = createStepElement(3, "The new value of `a` (which is " + (a + 1) + ") is then assigned to `b`.");
+                    const step4 = createStepElement(4, "Final values are calculated.", false);
+                    
+                    explanationContainer.append(step1, step2, step3, step4);
+                    
+                    setTimeout(() => { step1.classList.replace('step-inactive', 'step-active'); }, 100);
+                    setTimeout(() => { 
+                        step2.classList.replace('step-inactive', 'step-active'); 
+                        a++;
+                    }, 800);
+                    setTimeout(() => { 
+                        step3.classList.replace('step-inactive', 'step-active');
+                        b = a;
+                    }, 1600);
+                     setTimeout(() => { 
+                        step4.classList.replace('step-inactive', 'step-active');
+                        outputA.textContent = `// Output a: ${a}`;
+                        outputB.textContent = `// Output b: ${b}`;
+                    }, 2400);
+
+                } else { // post-increment
+                    const step1 = createStepElement(1, "The expression is `int b = a++;`");
+                    const step2 = createStepElement(2, "Java uses the current value of `a` (" + a + ") for the assignment to `b`.");
+                    const step3 = createStepElement(3, "After the assignment, the value of `a` is incremented from " + a + " to " + (a + 1) + ".");
+                    const step4 = createStepElement(4, "Final values are calculated.", false);
+                    
+                    explanationContainer.append(step1, step2, step3, step4);
+                    
+                    setTimeout(() => { step1.classList.replace('step-inactive', 'step-active'); }, 100);
+                    setTimeout(() => { 
+                        step2.classList.replace('step-inactive', 'step-active'); 
+                        b = a;
+                    }, 800);
+                    setTimeout(() => { 
+                        step3.classList.replace('step-inactive', 'step-active');
+                        a++;
+                    }, 1600);
+                     setTimeout(() => { 
+                        step4.classList.replace('step-inactive', 'step-active');
+                        outputA.textContent = `// Output a: ${a}`;
+                        outputB.textContent = `// Output b: ${b}`;
+                    }, 2400);
+                }
+            }
+            
+            operatorType.addEventListener('change', displayCode);
+            initialValue.addEventListener('input', displayCode);
+            runSimulationBtn.addEventListener('click', runSimulation);
+            
+            displayCode();
+
+            // Pitfall explorer
+            const runPitfallBtn = document.getElementById('runPitfall');
+            const nextPitfallBtn = document.getElementById('nextPitfallStep');
+            const pitfallStepsContainer = document.getElementById('pitfall-steps');
+            let currentPitfallStep = 0;
+            let pitfallState = {};
+
+            const pitfallSteps = [
+                { text: "Initial state: `val` is 10, `result` is unassigned." },
+                { text: "First, `++val` is evaluated. `val` is incremented to 11 **before** it's used. The expression becomes `11 * 2 + val++`.", val: 11 },
+                { text: "Next, `11 * 2` is calculated, which is `22`. The expression is now `22 + val++`.", val: 11 },
+                { text: "Then, `val++` is evaluated. The **current** value of `val` (which is 11) is used. The expression becomes `22 + 11`.", val: 11 },
+                { text: "Immediately after its value is used, `val` is incremented. `val` becomes 12.", val: 12 },
+                { text: "Finally, the addition `22 + 11` is performed. `result` is assigned the value `33`.", val: 12, result: 33 },
+                { text: "Execution complete. Final values: `val` is 12, `result` is 33." }
+            ];
+
+            function startPitfall() {
+                currentPitfallStep = 0;
+                pitfallState = { val: 10, result: '??' };
+                pitfallStepsContainer.innerHTML = '';
+                runPitfallBtn.classList.add('hidden');
+                nextPitfallBtn.classList.remove('hidden');
+                showNextPitfallStep();
+            }
+
+            function showNextPitfallStep() {
+                if (currentPitfallStep >= pitfallSteps.length) {
+                    nextPitfallBtn.classList.add('hidden');
+                    runPitfallBtn.classList.remove('hidden');
+                    runPitfallBtn.textContent = 'Restart Exploration';
+                    return;
+                }
+
+                const stepData = pitfallSteps[currentPitfallStep];
+                if (stepData.val !== undefined) pitfallState.val = stepData.val;
+                if (stepData.result !== undefined) pitfallState.result = stepData.result;
+                
+                const stepElement = document.createElement('div');
+                stepElement.className = 'p-4 border rounded-lg bg-gray-50 step-inactive';
+                stepElement.innerHTML = `
+                    <p>${stepData.text}</p>
+                    <hr class="my-2">
+                    <p class="font-mono text-sm text-gray-600">Current State: val = ${pitfallState.val}, result = ${pitfallState.result}</p>
+                `;
+                pitfallStepsContainer.appendChild(stepElement);
+                setTimeout(() => stepElement.classList.replace('step-inactive', 'step-active'), 50);
+
+                currentPitfallStep++;
+
+                if (currentPitfallStep === pitfallSteps.length) {
+                    nextPitfallBtn.textContent = 'Finish';
+                }
+            }
+            
+            runPitfallBtn.addEventListener('click', startPitfall);
+            nextPitfallBtn.addEventListener('click', showNextPitfallStep);
+
+        });
+
+        // Smooth scroll for navigation
+        function scrollToSection(id) {
+            const section = document.getElementById(id);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+
+</body>
+</html>
